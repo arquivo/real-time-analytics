@@ -4,20 +4,24 @@ from PIL import Image
 import plotly.graph_objects as go
 import streamlit as st
 import PyPDF2
-import re
+import plotly.express as px
 
-st.set_page_config(layout="wide", page_title="Arquivo.pt em números", page_icon=":chart:")
+#########################################################################################################
+
+#Set image from Arquivo.pt and the Layout
+st.set_page_config(layout="wide", page_title="Arquivo.pt em valores", page_icon=":chart:")
 
 st.markdown("<div style='text-align: center;'><img src='https://arquivo.pt/img/arquivo-logo-white.svg'></div>", unsafe_allow_html=True)
 
-st.markdown("<h1 style='text-align: center;'>em números</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>em valores</h1>", unsafe_allow_html=True)
+
+#########################################################################################################
 
 #Load the data from the dataframe
-#colnames=['Year', 'January - April Size', 'May - August Size', 'September - December Size', 'Total Year Size', 'January - April Nr Collections', 'May - August Nr Collections', 'September - December Nr Collections', 'Total Year Nr Collections'] 
-#df = pd.read_csv("1.csv", sep=',', names=colnames, header=None)
-
-colnames=['Year', 'Total Collections', 'Total Files', 'Total Seeds', 'Total Stored (TB)', 'Unique Users'] 
-df = pd.read_csv("2.csv", sep=';', names=colnames, header=None)
+#'Year', 'Total Collections', 'Total Files', 'Total Seeds', 'Total Stored (TB)' -> From the Collection Table
+#'Unique Users' -> From AWStats
+colnames=['Year', 'Total Collections', 'Total Files', 'Total Seeds', 'Total Stored (TB)', 'Unique Users']
+df = pd.read_csv("data.csv", sep=';', names=colnames, header=None, encoding='utf-8')
 
 #########################################################################################################
 
@@ -110,9 +114,7 @@ fig4.update_layout(
     yaxis_title='Total files)'
 )
 
-#st.plotly_chart(fig3)
-#st.plotly_chart(fig4)
-
+#Print the Chart
 col1, col2 = st.columns(2)
 
 with col1:
@@ -162,9 +164,7 @@ fig6.update_layout(
     yaxis_title='Total seeds'
 )
 
-#st.plotly_chart(fig5)
-#st.plotly_chart(fig6)
-
+#Print the Chart
 col1, col2 = st.columns(2)
 
 with col1:
@@ -214,9 +214,7 @@ fig8.update_layout(
     yaxis_title='Total stored (TB)'
 )
 
-#st.plotly_chart(fig7)
-#st.plotly_chart(fig8)
-
+#Print the Chart
 col1, col2 = st.columns(2)
 
 with col1:
@@ -229,8 +227,8 @@ with col2:
 
 #5) Top domains
 
-#cat Roteiro.cdxj | cut -d ')' -f 1 | uniq -c
-#cat *.cdxj | sort | cut -d ')' -f 1 | uniq -c
+#Commandline to get the information
+#cat *.cdxj | sort | cut -d ')' -f 1 | uniq -c > out_domain.txt
 
 #Data
 cities = ['fortunecity.com', 'dre.pt', 'members.fortunecity.com', 'yt3.ggpht.com', 'geocities.com', 'youtube.com', 'publico.pt', 'tek.sapo.pt', 'noticiasdacovilha.pt', 'regiaodeagueda.com']
@@ -268,6 +266,7 @@ fig10.update_layout(
     yaxis_title='PT Domains'
 )
 
+#Print the Chart
 col1, col2 = st.columns(2)
 
 with col1:
@@ -278,7 +277,50 @@ with col2:
 
 ##############################################################################################################
 
-#6)Unique users per year
+#6) Top mimetypes
+
+#put the command line
+#grep -Eo "mime\": \"[^\"]*\"" SAWP*.cdxj | cut -d ':' -f2- |cut -d '"' -f3 | sort | uniq -c > out.txt 
+#sort -k1nr out.txt > out_normal.txt
+
+#subprocess.run(['sort' , '-k1nr', 'out.txt'], stdout=open('output.txt', 'w'))
+
+#Read the contents of the text file into a list
+with open('output.txt', 'r') as file:
+    lines = file.readlines()
+
+data = [line.strip().split() for line in lines]
+df_mime = pd.DataFrame(data, columns=['Line_Count', 'MimeTypes'])
+df_mime['Line_Count'] = df_mime['Line_Count'].astype(int)
+result_mime = df_mime.groupby('MimeTypes')['Line_Count'].sum().reset_index()
+result_mime = result_mime.sort_values('Line_Count', ascending=False).head(5)
+fig11 = px.pie(result_mime, values='Line_Count', names='MimeTypes', title='Top 5 Mimetypes in Arquivo.pt')
+
+
+#7) Top statuscode
+#put the command line
+
+#Read the contents of the text file into a list
+with open('output_status.txt', 'r') as file:
+    lines = file.readlines()
+
+data = [line.strip().split() for line in lines]
+df_status = pd.DataFrame(data, columns=['Line_Count', 'StatusCode'])
+df_status['Line_Count'] = df_status['Line_Count'].astype(int)
+result_status = df_status.groupby('StatusCode')['Line_Count'].sum().reset_index()
+result_status = result_status.sort_values('Line_Count', ascending=False).head(5)
+fig12 = px.pie(result_status, values='Line_Count', names='StatusCode', title='Top 5 StatusCode in Arquivo.pt')
+
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.plotly_chart(fig11)
+
+with col2:
+    st.plotly_chart(fig12)
+
+#8)Unique users per year
 
 #Prepare your data
 categories = df['Year'][1:]
@@ -289,36 +331,15 @@ heights = df['Unique Users'][1:].astype(int)
 bar_chart = go.Bar(x=categories, y=heights)
 
 #Create a figure and add the bar chart object
-fig11 = go.Figure()
-fig11.add_trace(bar_chart)
+fig13 = go.Figure()
+fig13.add_trace(bar_chart)
 
 #Customize the chart (optional)
-fig11.update_layout(
+fig13.update_layout(
     title='Total number of unique users per year',
     xaxis_title='Year',
-    yaxis_title='unique users'
+    yaxis_title='Unique users'
     )
 
-st.plotly_chart(fig11)
-
-
-##############################################################################################################
-
-
-# Add a sidebar for the 'Year' field
-#selected_year = st.sidebar.selectbox('Select Year', df['Year'])
-
-# Filter the data based on the selected year
-#filtered_df = df[df['Year'] == selected_year]
-
-# Display the filtered data
-#st.write(filtered_df)
-
-
-
-
-
-#Quando dados fizemos
-#Quando paginas salvamos
-#Quando links citados 
-#Quantas links recolhemos
+#Chart
+st.plotly_chart(fig13)
