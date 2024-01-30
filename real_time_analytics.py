@@ -1,27 +1,44 @@
 import pandas as pd
-import streamlit as st
 from PIL import Image
 import plotly.graph_objects as go
 import streamlit as st
-import PyPDF2
-import plotly.express as px
+from gspread_dataframe import get_as_dataframe, set_with_dataframe
+import gspread
+import argparse
+
+#import pdb;pdb.set_trace()
+
+# Parse args
+parser = argparse.ArgumentParser(description='Description of your program')
+parser.add_argument('-j','--pathjson', help='Destination of the json file with google service key', default= "JSON")
+parser.add_argument('-k','--key', help='Key Google Spreadsheet', default= "KEY")
+parser.add_argument('-ws','--worksheet', help='Worksheet Google Spreadsheet', default= "Data")
+args = vars(parser.parse_args())
+
+#Connect gspread
+gc = gspread.service_account(filename=args['pathjson'])
+sh =  gc.open_by_key(args['key'])
+worksheet = sh.worksheet(args['worksheet'])
+
+#Transform worksheet to pandas dataframe
+df = get_as_dataframe(worksheet)
 
 #########################################################################################################
 
 #Set image from Arquivo.pt and the Layout
-st.set_page_config(layout="wide", page_title="Arquivo.pt em valores", page_icon=":chart:")
+st.set_page_config(layout="wide", page_title="Arquivo.pt in Numbers", page_icon=":chart:")
 
 st.markdown("<div style='text-align: center;'><img src='https://arquivo.pt/img/arquivo-logo-white.svg'></div>", unsafe_allow_html=True)
 
-st.markdown("<h1 style='text-align: center;'>em valores</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>in Numbers</h1>", unsafe_allow_html=True)
 
 #########################################################################################################
 
 #Load the data from the dataframe
 #'Year', 'Total Collections', 'Total Files', 'Total Seeds', 'Total Stored (TB)' -> From the Collection Table
 #'Unique Users' -> From AWStats
-colnames=['Year', 'Total Collections', 'Total Files', 'Total Seeds', 'Total Stored (TB)', 'Unique Users']
-df = pd.read_csv("data.csv", sep=';', names=colnames, header=None, encoding='utf-8')
+#colnames=['Year', 'Total Collections', 'Total Files', 'Total Seeds', 'Total Stored (TB)', 'Unique Users']
+#df = pd.read_csv("data.csv", sep=';', names=colnames, header=None, encoding='utf-8')
 
 #########################################################################################################
 
@@ -40,9 +57,9 @@ fig1.add_trace(bar_chart)
 
 #Customize the chart (optional)
 fig1.update_layout(
-    title='Total nr collections per year',
+    title='Total Nr Collections per Year',
     xaxis_title='Year',
-    yaxis_title='Nr collections'
+    yaxis_title='Nr Collections'
     )
 
 #Cumulative
@@ -58,9 +75,9 @@ fig2.add_trace(bar_chart)
 
 #Customize the chart (optional)
 fig2.update_layout(
-    title='Total nr collections per year cumulative',
+    title='Total Nr Collections per Year Cumulative',
     xaxis_title='Year',
-    yaxis_title='Nr collections'
+    yaxis_title='Nr Collections'
 )
 
 #st.plotly_chart(fig1)
@@ -91,9 +108,9 @@ fig3.add_trace(bar_chart)
 
 #Customize the chart (optional)
 fig3.update_layout(
-    title='Total files per year',
+    title='Total Files Collected per Year',
     xaxis_title='Year',
-    yaxis_title='Total files'
+    yaxis_title='Total Files'
     )
 
 #Cumulative
@@ -109,9 +126,9 @@ fig4.add_trace(bar_chart)
 
 #Customize the chart (optional)
 fig4.update_layout(
-    title='Total files per year cumulative',
+    title='Total Files per Year Cumulative',
     xaxis_title='Year',
-    yaxis_title='Total files)'
+    yaxis_title='Total Files)'
 )
 
 #Print the Chart
@@ -141,9 +158,9 @@ fig5.add_trace(bar_chart)
 
 #Customize the chart (optional)
 fig5.update_layout(
-    title='Total seeds per year',
+    title='Total URLs Collected per Year',
     xaxis_title='Year',
-    yaxis_title='Total seeds'
+    yaxis_title='Total URLs'
     )
 
 #Cumulative
@@ -159,9 +176,9 @@ fig6.add_trace(bar_chart)
 
 #Customize the chart (optional)
 fig6.update_layout(
-    title='Total seeds per year cumulative',
+    title='Total URLs Collected per Year Cumulative',
     xaxis_title='Year',
-    yaxis_title='Total seeds'
+    yaxis_title='Total URLs'
 )
 
 #Print the Chart
@@ -191,9 +208,9 @@ fig7.add_trace(bar_chart)
 
 #Customize the chart (optional)
 fig7.update_layout(
-    title='Total stored (TB) per year',
+    title='Total Stored (TB) per Year',
     xaxis_title='Year',
-    yaxis_title='Total stored (TB)'
+    yaxis_title='Total Stored (TB)'
     )
 
 #Cumulative
@@ -209,9 +226,9 @@ fig8.add_trace(bar_chart)
 
 #Customize the chart (optional)
 fig8.update_layout(
-    title='Total stored (TB) per year cumulative',
+    title='Total Stored (TB) per Year Cumulative',
     xaxis_title='Year',
-    yaxis_title='Total stored (TB)'
+    yaxis_title='Total Stored (TB)'
 )
 
 #Print the Chart
@@ -243,7 +260,7 @@ fig9 = go.Figure(data=go.Bar(y=cities, x=population, orientation='h'))
 
 #Customize the chart layout
 fig9.update_layout(
-    title='Top 10 domains in Arquivo.pt',
+    title='Top 10 Domains in Arquivo.pt',
     xaxis_title='Nr URLs',
     yaxis_title='Domains'
 )
@@ -261,9 +278,9 @@ fig10 = go.Figure(data=go.Bar(y=cities, x=population, orientation='h'))
 
 #Customize the chart layout
 fig10.update_layout(
-    title='Top 10 PT domains in Arquivo.pt',
+    title='Top 10 .PT Domains in Arquivo.pt',
     xaxis_title='Nr URLs',
-    yaxis_title='PT Domains'
+    yaxis_title='.PT Domains'
 )
 
 #Print the Chart
@@ -275,50 +292,68 @@ with col1:
 with col2:
     st.plotly_chart(fig10)
 
+
 ##############################################################################################################
 
-#6) Top mimetypes
-
-#put the command line
-#grep -Eo "mime\": \"[^\"]*\"" SAWP*.cdxj | cut -d ':' -f2- |cut -d '"' -f3 | sort | uniq -c > out.txt 
-#sort -k1nr out.txt > out_normal.txt
-
-#subprocess.run(['sort' , '-k1nr', 'out.txt'], stdout=open('output.txt', 'w'))
-
-#Read the contents of the text file into a list
-with open('output.txt', 'r') as file:
-    lines = file.readlines()
-
-data = [line.strip().split() for line in lines]
-df_mime = pd.DataFrame(data, columns=['Line_Count', 'MimeTypes'])
-df_mime['Line_Count'] = df_mime['Line_Count'].astype(int)
-result_mime = df_mime.groupby('MimeTypes')['Line_Count'].sum().reset_index()
-result_mime = result_mime.sort_values('Line_Count', ascending=False).head(5)
-fig11 = px.pie(result_mime, values='Line_Count', names='MimeTypes', title='Top 5 Mimetypes in Arquivo.pt')
+###Arquivo404 usage
 
 
-#7) Top statuscode
-#put the command line
+#Data
+months = ['01-2023', '02-2023', '03-2023', '04-2023', '05-2023', '06-2023', '07-2023', '08-2023', '09-2023', '10-2023']
+arquivo404_requests = [245, 203, 399, 229, 782, 3531, 13221, 8071, 11054, 1095]
 
-#Read the contents of the text file into a list
-with open('output_status.txt', 'r') as file:
-    lines = file.readlines()
+#Create a horizontal bar chart using Plotly
+fig9 = go.Figure(data=go.Bar(y=arquivo404_requests, x=months))
 
-data = [line.strip().split() for line in lines]
-df_status = pd.DataFrame(data, columns=['Line_Count', 'StatusCode'])
-df_status['Line_Count'] = df_status['Line_Count'].astype(int)
-result_status = df_status.groupby('StatusCode')['Line_Count'].sum().reset_index()
-result_status = result_status.sort_values('Line_Count', ascending=False).head(5)
-fig12 = px.pie(result_status, values='Line_Count', names='StatusCode', title='Top 5 StatusCode in Arquivo.pt')
+#Customize the chart layout
+fig9.update_layout(
+    title='Nr of Arquivo404 Requests per Month in 2023',
+    xaxis_title='Nr Requests',
+    yaxis_title='Month'
+)
 
+#Data
+arquivo404_visits = [62, 23, 93, 18, 84, 377, 1708, 740, 1266, 121]
 
+#Create a horizontal bar chart using Plotly
+fig10 = go.Figure(data=go.Bar(y=arquivo404_visits, x=months))
+
+#Customize the chart layout
+fig10.update_layout(
+    title='Nr of visits in Arquivo.pt from Arquivo404 service per Month in 2023',
+    xaxis_title='Nr Visits',
+    yaxis_title='Month'
+)
+
+#Print the Chart
 col1, col2 = st.columns(2)
 
 with col1:
-    st.plotly_chart(fig11)
+    st.plotly_chart(fig9)
 
 with col2:
-    st.plotly_chart(fig12)
+    st.plotly_chart(fig10)
+
+
+##############################################################################################################
+
+###SavePageNow Service usage
+
+#Data
+months = ['01-2023', '02-2023', '03-2023', '04-2023', '05-2023', '06-2023', '07-2023', '08-2023', '09-2023', '10-2023']
+savepagenow_requests = [255864, 185379, 841209, 118743, 189352, 172161, 154466, 202062, 160998, 11510]
+
+#Create a horizontal bar chart using Plotly
+fig11 = go.Figure(data=go.Bar(y=savepagenow_requests, x=months))
+
+#Customize the chart layout
+fig11.update_layout(
+    title='SavePageNow requests per month (save/now/record/ endpoint)',
+    xaxis_title='Nr Requests',
+    yaxis_title='Month'
+)
+
+#st.plotly_chart(fig11)
 
 #8)Unique users per year
 
@@ -331,15 +366,21 @@ heights = df['Unique Users'][1:].astype(int)
 bar_chart = go.Bar(x=categories, y=heights)
 
 #Create a figure and add the bar chart object
-fig13 = go.Figure()
-fig13.add_trace(bar_chart)
+fig12 = go.Figure()
+fig12.add_trace(bar_chart)
 
 #Customize the chart (optional)
-fig13.update_layout(
+fig12.update_layout(
     title='Total number of unique users per year',
     xaxis_title='Year',
     yaxis_title='Unique users'
     )
 
-#Chart
-st.plotly_chart(fig13)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.plotly_chart(fig11)
+
+with col2:
+    st.plotly_chart(fig12)
