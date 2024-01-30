@@ -15,5 +15,5 @@ pip install -r requirements.txt
 ### Run
 
 ```
-streamlit run real_time_analytics.py
+streamlit run real_time_analytics.py -- --j (json file with google service) --k (Key Google Spreadsheet) --ws (Worksheet Google Spreadsheet)
 ```
