@@ -11,9 +11,15 @@ import argparse
 # Parse args
 parser = argparse.ArgumentParser(description='Description of your program')
 parser.add_argument('-j','--pathjson', help='Destination of the json file with google service key', default= "JSON")
-parser.add_argument('-k','--key', help='Key Google Spreadsheet', default= "KEY")
-parser.add_argument('-ws','--worksheet', help='Worksheet Google Spreadsheet', default= "Data")
+parser.add_argument('-k1','--key1', help='Key Google Spreadsheet Real Time Analytics', default= "KEY")
+parser.add_argument('-ws1','--worksheet1', help='Worksheet Google Spreadsheet Real Time Analytics', default= "Data")
+parser.add_argument('-k2','--key2', help='Key Google Spreadsheet Metrics of APIs and services', default= "KEY")
+parser.add_argument('-ws2','--worksheet2', help='Worksheet Google Spreadsheet Metrics of APIs and services', default= "Data")
 args = vars(parser.parse_args())
+
+gc = args['pathjson']
+sh =  args['key1']
+worksheet = sh.worksheet(args['worksheet1'])
 
 #Transform worksheet to pandas dataframe
 df = get_as_dataframe(worksheet)
@@ -489,9 +495,9 @@ st.plotly_chart(fig22, config=config, use_container_width=True)
 
 ##############################################################################################################
 
-gc = gspread.service_account("service_account.json")
-sh =  gc.open_by_key("1ep9uG4H5QW7FUIeIrqGwwodBvjWcizcwRgzTFSn4P9U")
-worksheet = sh.worksheet("Summary Year")
+gc = args['pathjson']
+sh =  args['key2']
+worksheet = sh.worksheet(args['worksheet2'])
 
 #Transform worksheet to pandas dataframe
 df = get_as_dataframe(worksheet, index='false', evaluate_formulas=True)
