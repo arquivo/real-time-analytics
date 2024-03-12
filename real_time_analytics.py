@@ -17,8 +17,8 @@ parser.add_argument('-k2','--key2', help='Key Google Spreadsheet Metrics of APIs
 parser.add_argument('-ws2','--worksheet2', help='Worksheet Google Spreadsheet Metrics of APIs and services', default= "Summary Year")
 args = vars(parser.parse_args())
 
-gc = args['pathjson']
-sh =  args['key1']
+gc =  gspread.service_account(args['pathjson'])
+sh =  gc.open_by_key(args['key1'])
 worksheet = sh.worksheet(args['worksheet1'])
 
 #Transform worksheet to pandas dataframe
@@ -495,8 +495,8 @@ st.plotly_chart(fig22, config=config, use_container_width=True)
 
 ##############################################################################################################
 
-gc = args['pathjson']
-sh =  args['key2']
+gc = gspread.service_account(args['pathjson'])
+sh =  gc.open_by_key(args['key2'])
 worksheet = sh.worksheet(args['worksheet2'])
 
 #Transform worksheet to pandas dataframe
