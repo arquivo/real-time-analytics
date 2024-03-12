@@ -14,7 +14,7 @@ parser.add_argument('-j','--pathjson', help='Destination of the json file with g
 parser.add_argument('-k1','--key1', help='Key Google Spreadsheet Real Time Analytics', default= "KEY")
 parser.add_argument('-ws1','--worksheet1', help='Worksheet Google Spreadsheet Real Time Analytics', default= "Data")
 parser.add_argument('-k2','--key2', help='Key Google Spreadsheet Metrics of APIs and services', default= "KEY")
-parser.add_argument('-ws2','--worksheet2', help='Worksheet Google Spreadsheet Metrics of APIs and services', default= "Data")
+parser.add_argument('-ws2','--worksheet2', help='Worksheet Google Spreadsheet Metrics of APIs and services', default= "Summary Year")
 args = vars(parser.parse_args())
 
 gc = args['pathjson']
