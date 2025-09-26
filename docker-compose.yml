@@ -1,0 +1,22 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: real-time-analytics-app
+    ports:
+      - "8501:8501"
+    secrets:
+      - source: google_service_account_json
+        target: /run/secrets/google_service_account.json
+    environment:
+      - GOOGLE_SERVICE_ACCOUNT_JSON=/run/secrets/google_service_account.json
+      - KEY1=${KEY1}
+      - KEY2=${KEY2}
+    env_file:
+      - path: .env
+        required: true
+
+secrets:
+  google_service_account_json:
+    file: ./service_account.json
